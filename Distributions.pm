@@ -1,23 +1,24 @@
-package Statistics::Distributions;
+package Statistics::Distributions; 
 
 use strict;
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 use vars qw($n $p $x $m $y $i $c $d $e $q $delta $round $z);
 use constant PI => 3.1415926536;
-use constant SIGNIFICANT => 5; # significant digits
+use constant SIGNIFICANT => 5; # number of significant digits to be returned
+
 require Exporter;
 
 @ISA = qw(Exporter AutoLoader);
 # Items to export into callers namespace by default. Note: do not export
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
-@EXPORT_OK = qw(chisqrdistr tdistr fdistr udistr uprob chisqrprob);
-$VERSION = '0.04';
+@EXPORT_OK = qw(chisqrdistr tdistr fdistr udistr uprob chisqrprob tprob fprob);
+$VERSION = '0.05';
 
 
 # Preloaded methods go here.
    
-sub chisqrdistr { # Percentage points  X’(x’,þ)
+sub chisqrdistr { # Percentage points  X^2(x^2,n)
     $n=shift;    
     $p=shift;
     if (($n<=0) || ((abs($n)-(abs(int($n))))!=0)) {
@@ -34,7 +35,7 @@ sub chisqrdistr { # Percentage points  X’(x’,þ)
     }
 }
 
-sub udistr { # Percentage points   N(0,1’)
+sub udistr { # Percentage points   N(0,1^2)
     $p=shift;
     if (($p>1) || ($p<=0)) {
 	die "Invalid p: $p\n";
@@ -46,7 +47,7 @@ sub udistr { # Percentage points   N(0,1’)
     return $x;
 }
 
-sub tdistr { # Percentage points   t(x,þ)
+sub tdistr { # Percentage points   t(x,n)
     $n=shift;
     $p=shift;
     if (($n<=0) || ((abs($n)-(abs(int($n))))!=0)) {
@@ -62,7 +63,7 @@ sub tdistr { # Percentage points   t(x,þ)
     return $x;
 }
 
-sub fdistr { # Percentage points  F(x,þü,þý)
+sub fdistr { # Percentage points  F(x,n1,n2)
     $n=shift;
     $m=shift;
     $p=shift;
@@ -82,7 +83,7 @@ sub fdistr { # Percentage points  F(x,þü,þý)
     return $x;
 }
 
-sub uprob { # Upper probability   N(0,1’)
+sub uprob { # Upper probability   N(0,1^2)
     $x=shift;
     &_subuprob;
     if ($p) {
@@ -91,7 +92,7 @@ sub uprob { # Upper probability   N(0,1’)
     return $p;
 }
 
-sub chisqrprob { # Upper probability   X’(x’,þ)
+sub chisqrprob { # Upper probability   X^2(x^2,n)
     $n=shift;    
     $x=shift;
     if (($n<=0) || ((abs($n)-(abs(int($n))))!=0)) {
@@ -104,6 +105,103 @@ sub chisqrprob { # Upper probability   X’(x’,þ)
 	return $p;
     }
 }
+
+sub tprob { # Upper probability   t(x,n)
+    $n=shift;    
+    $x=shift;
+    if (($n<=0) || ((abs($n)-(abs(int($n))))!=0)) {
+	die "Invalid n: $n\n"; # degree of freedom
+    }
+    &_subtprob;
+    if ($p) {
+	my $precision=abs int(log10(abs $p)- SIGNIFICANT);
+	my $p=sprintf"%.".$precision."f",$p;
+	return $p;
+    }
+}
+
+sub fprob { # Upper probability   F(x,n1,n2)
+    $n=shift;
+    $m=shift;
+    $x=shift;
+    if (($n<=0) || ((abs($n)-(abs(int($n))))!=0)) {
+	die "Invalid n: $n\n"; # first degree of freedom
+    }
+    if (($m<=0) || ((abs($m)-(abs(int($m))))!=0)) {
+	die "Invalid m: $m\n"; # second degree of freedom
+    } 
+    &_subfprob;
+    if ($p) {
+	$p=sprintf"%.".abs(int(log10(abs $p)- SIGNIFICANT))."f",$p;
+    }  
+    return $p;
+}
+
+
+sub _subfprob {
+    if ($x<=0) {
+	$p=1;
+	$y=$p;
+    }
+    elsif ($m%2==0) {
+	$z=$m/($m+$n*$x);
+	$a=1;
+	for ($i=$m-2;$i>=2;$i-=2) {
+	    $a=1+($n+$i-2)/$i*$z*$a;
+	}
+	$p=(1-$z)**($n/2)*$a;
+	$p=1-$p;
+	$y=$p;
+    } 
+    elsif ($n%2==0) {
+	$z=$n*$x/($m+$n*$x);
+	$i=$m;
+	$m=$n;
+	$n=$i;
+	$a=1;
+	for ($i=$m-2;$i>=2;$i-=2) {
+	    $a=1+($n+$i-2)/$i*$z*$a;
+	}
+	$p=(1-$z)**($n/2)*$a;
+	$i=$m;
+	$m=$n;
+	$n=$i;
+	$y=$p;
+    }
+    else {
+	$y=atan2(sqrt($n*$x/$m),1);
+	$z=sin($y)**2;
+	if ($n==1) {
+	    $a=0;
+	}
+	else {
+	    $a=1;
+	}
+	for ($i=$n-2;$i>=3;$i-=2) {
+	    $a=1+($m+$i-2)/$i*$z*$a;
+	} 
+	$b=PI;
+	for ($i=2;$i<=$m-1;$i+=2) {
+	    $b=$b*($i-1)/$i;
+	}
+	$p=2/$b*sin($y)*cos($y)**$m*$a;
+	$z=cos($y)**2;
+	if ($m==1) {
+	    $a=0;
+	}
+	else {
+	    $a=1;
+	}
+	for ($i=$m-2;$i>=3;$i-=2) {
+	    $a=1+($i-1)/$i*$z*$a;
+	}
+	$a=1-2*$y/PI-2/PI*sin ($y)*cos $y*$a;
+	$p+=$a;
+	$p=0 if ($p<0);
+	$y=$p;
+    }
+}
+
 
 sub _subchisqrprob {
     if ($x<=0) {
@@ -197,7 +295,7 @@ sub _subt {
     else {
 	do {	
 	    $q=$p;
-	    &_subt2;
+	    &_subtprob;
 	    $p=$y;
 	    $b=$n+1;
 	    $a=exp(($b*log($b/($n+$x*$x))+log($n/$b/2/PI)-1+(1/$b-1/$n)/6)/2);
@@ -211,7 +309,7 @@ sub _subt {
     }
 }
 
-sub _subt2 {
+sub _subtprob {
     $y=atan2($x/sqrt($n),1);
     $z=cos $y**2;
     if ($n%2==0) {
@@ -305,10 +403,10 @@ sub _subf2 {
     do {
 	$d=$x;
 	$c=$p;
-	&S6240;
+	&_subfprob;
 	$p=$c;
 	$z=$n+$m;
-	$z=exp(($z*log($z/($n*$x+$m))+($n-2)*log $x+log($n*$m/$z)-log(4*PI)-(1/$n+1/$m-1/$z)/6)/2);
+	$z=exp(($z*log($z/($n*$x+$m))+($n-2)*log($x)+log($n*$m/$z)-log(4*PI)-(1/$n+1/$m-1/$z)/6)/2);
 	$x=$x+($y-$p)/$z;
     } while (abs($d-$x)>3e-4);
 }
@@ -418,17 +516,30 @@ Statistics::Distributions - Perl module for calculating critical values of commo
   print "upper probability of the u distribution: Q(u) = 1-G(u) (u=1.43) = $uprob\n";
   $chisprob=Statistics::Distributions::chisqrprob (3,6.25);
   print "upper probability of the chi-square distribution: Q = 1-G (3 degrees of freedom, chi-squared = 6.25) = $chisprob\n";
+  $tprob=Statistics::Distributions::tprob (3,6.251);
+  print "upper probability of the t distribution: Q = 1-G (3 degrees of freedom  , t = 6.251) = $tprob\n";
+  $fprob=Statistics::Distributions::fprob (3,5,.625);
+  print "upper probability of the F distribution: Q = 1-G (3 degrees of freedom  in numerator, 5 degrees of freedom in denominator, F = 6.25) = $fprob\n";
+
 =head1 DESCRIPTION
 
-This Perl module calulates percentage points (5 significant digits) of the u (standard normal) distribution, the student's t distribution, the chi-square distribution and the F distribution. It can also calculate the upper probability (5 significant digits) of the u (standard normal) and the chi-square distribution.
+This Perl module calulates percentage points (5 significant digits) of the u (standard normal) distribution, the student's t distribution, the chi-square distribution and the F distribution. It can also calculate the upper probability (5 significant digits) of the u (standard normal), the chi-square, the t and the F distribution.
 These critical values are needed to perform statistical tests, like the u test, the t test, the F test and the chi-squared test, and to calculate confidence intervals.
+
 =head1 AUTHOR
 
 Michael Kospach, mike.perl@gmx.at
 
 =head1 SEE ALSO
 
-Statistics::ChiSquare, Statistics::Table::t, Statistics::Table::F
-    perl(1).
+Statistics::ChiSquare, Statistics::Table::t, Statistics::Table::F, perl(1).
 
 =cut
+
+
+
+
+
+
+
+

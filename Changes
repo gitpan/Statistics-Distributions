@@ -1,5 +1,8 @@
 Revision history for Perl extension Statistics::Distributions.
 
+0.05  Wed Sep 27 20:27:04 2000
+        - tprob and fprob (upper probability of t and F distribution) added
+	- removed bug from fdistr
 0.04  Wed Jun 28 18:12:40 2000
 	- chisqrprob (upper probability of chi-square distribution) added
 	- significant digits defined at the beginning	      
