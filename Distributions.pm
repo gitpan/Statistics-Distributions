@@ -12,7 +12,7 @@ require Exporter;
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
 @EXPORT_OK = qw(chisqrdistr tdistr fdistr udistr uprob chisqrprob tprob fprob);
-$VERSION = '1.01';
+$VERSION = '1.02';
 
 # Preloaded methods go here.
    
@@ -463,7 +463,7 @@ Statistics::Distributions - Perl module for calculating critical values and uppe
        ."in denominator, 99th percentile = 0.01 level) = $f\n";
   
   $uprob=Statistics::Distributions::uprob (-0.85);
-  print "upper probability of the u distribution (u = 1.43): Q(u) "
+  print "upper probability of the u distribution (u = -0.85): Q(u) "
        ."= 1-G(u) = $uprob\n";
   
   $chisprob=Statistics::Distributions::chisqrprob (3,6.25);
@@ -490,7 +490,7 @@ If you are interested in more precise algorithms you could look at:
 
 =head1 BUGS 
 
-This final version 1.01 has been released after more than one year without a bug report on the previous version 0.07.
+This final version 1.02 has been released after more than one year without a bug report on the previous version 0.07.
 Nevertheless, if you find any bugs or oddities, please do inform the author. 
 
 =head1 INSTALLATION 
@@ -499,7 +499,7 @@ See perlmodinstall for information and options on installing Perl modules.
 
 =head1 AVAILABILITY 
 
-The latest version of this module is available from the Distribution Perl Archive Network (CPAN). Visit <http://www.cpan.org/> to find a CPAN site near you or see <http://www.cpan.org/authors/id/M/MI/MIKEK/>.
+The latest version of this module is available from the Distribution Perl Archive Network (CPAN). Please visit http://www.cpan.org/ to find a CPAN site near you or see http://www.cpan.org/authors/id/M/MI/MIKEK/ .
 
 =head1 AUTHOR
 

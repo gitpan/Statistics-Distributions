@@ -1,5 +1,7 @@
 Revision history for Perl extension Statistics::Distributions.
 
+1.02  Wed Oct  1 22:19:22 2003
+	- minor mistake in documentation corrected.
 1.01  Thu Mar 27 01:03:14 2003
 	- only cosmetics, final release as there were no more bug reports 
 	  for more than one year.
