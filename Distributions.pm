@@ -12,7 +12,7 @@ require Exporter;
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
 @EXPORT_OK = qw(chisqrdistr tdistr fdistr udistr uprob chisqrprob tprob fprob);
-$VERSION = '0.07';
+$VERSION = '1.01';
 
 # Preloaded methods go here.
    
@@ -441,41 +441,77 @@ __END__
 
 =head1 NAME
 
-Statistics::Distributions - Perl module for calculating critical values of common statistical distributions
+Statistics::Distributions - Perl module for calculating critical values and upper probabilities of common statistical distributions
 
 =head1 SYNOPSIS
 
   use Statistics::Distributions;
 
-  $chis=chisqrdistr (2,.05);
-  print "Chi-squared-crit (2 degrees of freedom, 95th percentile = 0.05 level) = $chis\n";
-  $u=udistr (.05);
+  $chis=Statistics::Distributions::chisqrdistr (2,.05);
+  print "Chi-squared-crit (2 degrees of freedom, 95th percentile "
+       ."= 0.05 level) = $chis\n";
+  
+  $u=Statistics::Distributions::udistr (.05);
   print "u-crit (95th percentile = 0.05 level) = $u\n";
-  $t=tdistr (1,.005);
-  print "t-crit (1 degree of freedom, 99.5th percentile = 0.005 level) =$t\n";
-  $f=fdistr (1,3,.01);
-  print "F-crit (1 degree of freedom in numerator, 3 degrees of freedom in denominator, 99th percentile = 0.01 level) = $f\n";
+  
+  $t=Statistics::Distributions::tdistr (1,.005);
+  print "t-crit (1 degree of freedom, 99.5th percentile = 0.005 level) "
+       ."= $t\n";
+  
+  $f=Statistics::Distributions::fdistr (1,3,.01);
+  print "F-crit (1 degree of freedom in numerator, 3 degrees of freedom "
+       ."in denominator, 99th percentile = 0.01 level) = $f\n";
+  
   $uprob=Statistics::Distributions::uprob (-0.85);
-  print "upper probability of the u distribution: Q(u) = 1-G(u) (u=1.43) = $uprob\n";
+  print "upper probability of the u distribution (u = 1.43): Q(u) "
+       ."= 1-G(u) = $uprob\n";
+  
   $chisprob=Statistics::Distributions::chisqrprob (3,6.25);
-  print "upper probability of the chi-square distribution: Q = 1-G (3 degrees of freedom, chi-squared = 6.25) = $chisprob\n";
+  print "upper probability of the chi-square distribution (3 degrees "
+       ."of freedom, chi-squared = 6.25): Q = 1-G = $chisprob\n";
+  
   $tprob=Statistics::Distributions::tprob (3,6.251);
-  print "upper probability of the t distribution: Q = 1-G (3 degrees of freedom  , t = 6.251) = $tprob\n";
+  print "upper probability of the t distribution (3 degrees of "
+       ."freedom, t = 6.251): Q = 1-G = $tprob\n";
+  
   $fprob=Statistics::Distributions::fprob (3,5,.625);
-  print "upper probability of the F distribution: Q = 1-G (3 degrees of freedom  in numerator, 5 degrees of freedom in denominator, F = 6.25) = $fprob\n";
+  print "upper probability of the F distribution (3 degrees of freedom "
+       ."in numerator, 5 degrees of freedom in denominator, F = 6.25): "
+       ."Q = 1-G = $fprob\n";
 
 =head1 DESCRIPTION
 
-This Perl module calulates percentage points (5 significant digits) of the u (standard normal) distribution, the student's t distribution, the chi-square distribution and the F distribution. It can also calculate the upper probability (5 significant digits) of the u (standard normal), the chi-square, the t and the F distribution.
+This Perl module calculates percentage points (5 significant digits) of the u (standard normal) distribution, the student's t distribution, the chi-square distribution and the F distribution. It can also calculate the upper probability (5 significant digits) of the u (standard normal), the chi-square, the t and the F distribution.
 These critical values are needed to perform statistical tests, like the u test, the t test, the F test and the chi-squared test, and to calculate confidence intervals.
+
 If you are interested in more precise algorithms you could look at:
- StatLib: http://lib.stat.cmu.edu/apstat/
+ StatLib: http://lib.stat.cmu.edu/apstat/ ; 
  Applied Statistics Algorithms by Griffiths, P. and Hill, I.D., Ellis Horwood: Chichester (1985)
+
+=head1 BUGS 
+
+This final version 1.01 has been released after more than one year without a bug report on the previous version 0.07.
+Nevertheless, if you find any bugs or oddities, please do inform the author. 
+
+=head1 INSTALLATION 
+
+See perlmodinstall for information and options on installing Perl modules. 
+
+=head1 AVAILABILITY 
+
+The latest version of this module is available from the Distribution Perl Archive Network (CPAN). Visit <http://www.cpan.org/> to find a CPAN site near you or see <http://www.cpan.org/authors/id/M/MI/MIKEK/>.
 
 =head1 AUTHOR
 
-Michael Kospach, mike.perl@gmx.at
-Nice formating, simplification and bug repair by Matthias Trautner Kromann, mtk@id.cbs.dk 
+Michael Kospach <mike.perl@gmx.at>
+
+Nice formating, simplification and bug repair by Matthias Trautner Kromann <mtk@id.cbs.dk>
+
+=head1 COPYRIGHT 
+
+Copyright 2003 Michael Kospach. All rights reserved. 
+
+This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself. 
 
 =head1 SEE ALSO
 

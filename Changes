@@ -1,5 +1,9 @@
 Revision history for Perl extension Statistics::Distributions.
 
+1.01  Thu Mar 27 01:03:14 2003
+	- only cosmetics, final release as there were no more bug reports 
+	  for more than one year.
+	- copyright notice added
 0.07  Sat Jun 23 01:49:33 2001
         - repaired bug in fprob which also led to errors (negative log)
 	  in fdistr
