@@ -6,7 +6,7 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; print "1..5\n"; }
+BEGIN { $| = 1; print "1..6\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use Statistics::Distributions;
 $loaded = 1;
@@ -26,3 +26,5 @@ if (Statistics::Distributions::tdistr (1,.005) == 63.657) { print "ok 4\n"; }
 else { print "not ok 4\n"; }
 if (Statistics::Distributions::fdistr (1,3,.01) == 34.116) { print "ok 5\n"; }
 else { print "not ok 5\n"; }
+if (Statistics::Distributions::uprob (-.85) == .80234) { print "ok 6\n"; }
+else { print "not ok 6\n"; }

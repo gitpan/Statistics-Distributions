@@ -10,16 +10,14 @@ require Exporter;
 # Items to export into callers namespace by default. Note: do not export
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
-@EXPORT_OK = qw(chisqrdistr tdistr fdistr udistr);
-$VERSION = '0.02';
+@EXPORT_OK = qw(chisqrdistr tdistr fdistr udistr uprob);
+$VERSION = '0.03';
 
 
 # Preloaded methods go here.
    
 sub chisqrdistr { # Percentage points  X’(x’,þ)
-    $n=shift;
-
-    
+    $n=shift;    
     $p=shift;
     if (($n<=0) || ((abs($n)-(abs(int($n))))!=0)) {
 	die "Invalid n: $n\n"; # degree of freedom
@@ -83,6 +81,15 @@ sub fdistr { # Percentage points  F(x,þü,þý)
     return $x;
 }
 
+sub uprob { # Upper probability   N(0,1’)
+    $x=shift;
+    &_subuprob;
+    if ($p) {
+	$p=sprintf"%.".abs(int(log10(abs $p)-5))."f",$p;
+    }
+    return $p;
+}
+
 sub _subu {
     $y=-log(4*$p*(1-$p));
     $x=.5824238515E-5+$y*(-.104527497E-5+$y*(.8360937017E-7+$y*(-.3231081277E-8+$y*(.3657763036E-10+$y*.6936233982E-12))));
@@ -91,7 +98,7 @@ sub _subu {
     $y=$x;
 }
 
-sub _subchisqr2 {
+sub _subuprob {
     $y=abs($x);
     $p=0;
     if ($y>100) {
@@ -293,7 +300,7 @@ sub _subchisqr {
 		elsif ($n>100) {
 		    $z=$x;
 		    $x=(($x/$n)**(1/3)-(1-2/9/$n))/sqrt(2/9/$n);
-		    &_subchisqr2;
+		    &_subuprob;
 		    $p=$y;
 		    $x=$z;
 		    $y=$p;
@@ -309,7 +316,7 @@ sub _subchisqr {
 		    if (($n % 2)!=0) {
 			$z=$x;
 			$x=sqrt($x);
-			&_subchisqr2;
+			&_subuprob;
 			$p=2*$y;
 			$a=sqrt(2/PI)*$a/$x;
 			$x=$z;
@@ -354,12 +361,13 @@ Statistics::Distributions - Perl module for calculating critical values of commo
   print "t-crit (1 degree of freedom, 99.5th percentile = 0.005 level) =$t\n";
   $f=fdistr (1,3,.01);
   print "F-crit (1 degree of freedom in numerator, 3 degrees of freedom in denominator, 99th percentile = 0.01 level) = $f\n";
-
+  $uprob=Statistics::Distributions::uprob (-0.85);
+  print "upper probability of the u distribution: Q(u) = 1-G(u) (u=1.43) = $uprob\n";
 
 =head1 DESCRIPTION
 
-This Perl module calulates percentage points (5 significant digits) of the u (standard normal) distribution, the student's t distribution, the chi-square distribution and the F distribution.
-These critical values are needed to perform statistical tests, like the u test, the t test, the F test and the chi-squared test, and to calculate confidence intervals.
+This Perl module calulates percentage points (5 significant digits) of the u (standard normal) distribution, the student's t distribution, the chi-square distribution and the F distribution. It can also calculate the upper probability (5 significant digits) of the u (standard normal) distribution, which you will need to perfom a chi-squared test.
+These critical values are needed to perform statistical tests, like the u test, the t test, the F test and the chi-squared test, and to calculate confidence intervals. This module can also calculate the upper probability (5 significant digits) of the u (standard normal) distribution.
 
 =head1 AUTHOR
 
