@@ -1,5 +1,9 @@
 Revision history for Perl extension Statistics::Distributions.
 
+0.07  Sat Jun 23 01:49:33 2001
+        - repaired bug in fprob which also led to errors (negative log)
+	  in fdistr
+	- repaired bug in tprob  
 0.06  Wed Feb 28 17:46:41 2001
           thanks for changes to Matthias Trautner Kromann:
 	- repaired bug in tdistr (for p=.5 and p<0.5)

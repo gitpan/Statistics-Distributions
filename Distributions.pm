@@ -12,7 +12,7 @@ require Exporter;
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
 @EXPORT_OK = qw(chisqrdistr tdistr fdistr udistr uprob chisqrprob tprob fprob);
-$VERSION = '0.06';
+$VERSION = '0.07';
 
 # Preloaded methods go here.
    
@@ -132,7 +132,7 @@ sub _subfprob {
 			$a = 1 + ($i - 1) / $i * $z * $a;
 		}
 		$p = max(0, $p1 + 1 - 2 * $y / PI
-			- 2 / PI * sin($y) * cos $y * $a);
+			- 2 / PI * sin($y) * cos($y) * $a);
 	}
 	return $p;
 }
@@ -260,7 +260,7 @@ sub _subtprob {
 
 	my ($a,$b);
 	my $w = atan2($x / sqrt($n), 1);
-	my $z = cos $w ** 2;
+	my $z = cos($w) ** 2;
 	my $y = 1;
 
 	for (my $i = $n-2; $i >= 2; $i -= 2) {
