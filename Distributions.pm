@@ -4,14 +4,15 @@ use strict;
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 use vars qw($n $p $x $m $y $i $c $d $e $q $delta $round $z);
 use constant PI => 3.1415926536;
+use constant SIGNIFICANT => 5; # significant digits
 require Exporter;
 
 @ISA = qw(Exporter AutoLoader);
 # Items to export into callers namespace by default. Note: do not export
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
-@EXPORT_OK = qw(chisqrdistr tdistr fdistr udistr uprob);
-$VERSION = '0.03';
+@EXPORT_OK = qw(chisqrdistr tdistr fdistr udistr uprob chisqrprob);
+$VERSION = '0.04';
 
 
 # Preloaded methods go here.
@@ -27,7 +28,7 @@ sub chisqrdistr { # Percentage points  X’(x’,þ)
     }
     &_subchisqr;
     if ($x) {
-	my $precision=abs int(log10(abs $x)-5);
+	my $precision=abs int(log10(abs $x)- SIGNIFICANT);
 	my $x=sprintf"%.".$precision."f",$x;
 	return $x;
     }
@@ -40,7 +41,7 @@ sub udistr { # Percentage points   N(0,1’)
     }
     &_subu;
     if ($x) {
-	$x=sprintf"%.".abs(int(log10(abs $x)-5))."f",$x;
+	$x=sprintf"%.".abs(int(log10(abs $x)- SIGNIFICANT))."f",$x;
     }
     return $x;
 }
@@ -56,7 +57,7 @@ sub tdistr { # Percentage points   t(x,þ)
     }
     &_subt;
     if ($x) {
-	$x=sprintf "%.".abs(int(log10(abs $x)-5))."f",$x;
+	$x=sprintf "%.".abs(int(log10(abs $x)- SIGNIFICANT))."f",$x;
     }
     return $x;
 }
@@ -76,7 +77,7 @@ sub fdistr { # Percentage points  F(x,þü,þý)
     }
     &_subf;
     if ($x) {
-	$x=sprintf"%.".abs(int(log10(abs $x)-5))."f",$x;
+	$x=sprintf"%.".abs(int(log10(abs $x)- SIGNIFICANT))."f",$x;
     }  
     return $x;
 }
@@ -85,9 +86,61 @@ sub uprob { # Upper probability   N(0,1’)
     $x=shift;
     &_subuprob;
     if ($p) {
-	$p=sprintf"%.".abs(int(log10(abs $p)-5))."f",$p;
+	$p=sprintf"%.".abs(int(log10(abs $p)- SIGNIFICANT))."f",$p;
     }
     return $p;
+}
+
+sub chisqrprob { # Upper probability   X’(x’,þ)
+    $n=shift;    
+    $x=shift;
+    if (($n<=0) || ((abs($n)-(abs(int($n))))!=0)) {
+	die "Invalid n: $n\n"; # degree of freedom
+    }
+    &_subchisqrprob;
+    if ($p) {
+	my $precision=abs int(log10(abs $p)- SIGNIFICANT);
+	my $p=sprintf"%.".$precision."f",$p;
+	return $p;
+    }
+}
+
+sub _subchisqrprob {
+    if ($x<=0) {
+	$p=1;
+	$y=$p;
+	}
+    elsif ($n>100) {
+	$z=$x;
+	$x=(($x/$n)**(1/3)-(1-2/9/$n))/sqrt(2/9/$n);
+	&_subuprob;
+	$p=$y;
+	$x=$z;
+	$y=$p;
+    }
+    elsif ($x>400) {
+	$p=0;
+	$y=$p;
+    }
+    else {   
+	$a=exp(-$x/2);
+	$p=$a;
+	$y=2;
+	if (($n % 2)!=0) {
+	    $z=$x;
+	    $x=sqrt $x;
+	    &_subuprob;
+	    $p=2*$y;
+	    $a=sqrt(2/PI)*$a/$x;
+	    $x=$z;
+	    $y=1;
+	}
+	for ($i=$y;$i<=($n-2);$i+=2) {
+	    $a=$a*$x/$i;
+	    $p=$p+$a;
+	}
+	$y=$p;
+    }
 }
 
 sub _subu {
@@ -363,12 +416,12 @@ Statistics::Distributions - Perl module for calculating critical values of commo
   print "F-crit (1 degree of freedom in numerator, 3 degrees of freedom in denominator, 99th percentile = 0.01 level) = $f\n";
   $uprob=Statistics::Distributions::uprob (-0.85);
   print "upper probability of the u distribution: Q(u) = 1-G(u) (u=1.43) = $uprob\n";
-
+  $chisprob=Statistics::Distributions::chisqrprob (3,6.25);
+  print "upper probability of the chi-square distribution: Q = 1-G (3 degrees of freedom, chi-squared = 6.25) = $chisprob\n";
 =head1 DESCRIPTION
 
-This Perl module calulates percentage points (5 significant digits) of the u (standard normal) distribution, the student's t distribution, the chi-square distribution and the F distribution. It can also calculate the upper probability (5 significant digits) of the u (standard normal) distribution, which you will need to perfom a chi-squared test.
-These critical values are needed to perform statistical tests, like the u test, the t test, the F test and the chi-squared test, and to calculate confidence intervals. This module can also calculate the upper probability (5 significant digits) of the u (standard normal) distribution.
-
+This Perl module calulates percentage points (5 significant digits) of the u (standard normal) distribution, the student's t distribution, the chi-square distribution and the F distribution. It can also calculate the upper probability (5 significant digits) of the u (standard normal) and the chi-square distribution.
+These critical values are needed to perform statistical tests, like the u test, the t test, the F test and the chi-squared test, and to calculate confidence intervals.
 =head1 AUTHOR
 
 Michael Kospach, mike.perl@gmx.at

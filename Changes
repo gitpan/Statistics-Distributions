@@ -1,5 +1,8 @@
 Revision history for Perl extension Statistics::Distributions.
 
+0.04  Wed Jun 28 18:12:40 2000
+	- chisqrprob (upper probability of chi-square distribution) added
+	- significant digits defined at the beginning	      
 0.03  Fri May 19 14:39:46 2000
         - uprob (upper probability of u distribution) added
 0.02  Fri May 12 17:01:48 2000
