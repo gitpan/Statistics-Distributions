@@ -1,5 +1,9 @@
 Revision history for Perl extension Statistics::Distributions.
 
+0.06  Wed Feb 28 17:46:41 2001
+          thanks for changes to Matthias Trautner Kromann:
+	- repaired bug in tdistr (for p=.5 and p<0.5)
+	- use of local variables, simplification and nice formating
 0.05  Wed Sep 27 20:27:04 2000
         - tprob and fprob (upper probability of t and F distribution) added
 	- removed bug from fdistr

@@ -1,8 +1,7 @@
-package Statistics::Distributions; 
+package Statistics::Distributions;
 
 use strict;
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
-use vars qw($n $p $x $m $y $i $c $d $e $q $delta $round $z);
 use constant PI => 3.1415926536;
 use constant SIGNIFICANT => 5; # number of significant digits to be returned
 
@@ -13,482 +12,426 @@ require Exporter;
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
 @EXPORT_OK = qw(chisqrdistr tdistr fdistr udistr uprob chisqrprob tprob fprob);
-$VERSION = '0.05';
-
+$VERSION = '0.06';
 
 # Preloaded methods go here.
    
 sub chisqrdistr { # Percentage points  X^2(x^2,n)
-    $n=shift;    
-    $p=shift;
-    if (($n<=0) || ((abs($n)-(abs(int($n))))!=0)) {
-	die "Invalid n: $n\n"; # degree of freedom
-    }
-    if (($p<=0) || ($p>1)) {
-	die "Invalid p: $p\n"; 
-    }
-    &_subchisqr;
-    if ($x) {
-	my $precision=abs int(log10(abs $x)- SIGNIFICANT);
-	my $x=sprintf"%.".$precision."f",$x;
-	return $x;
-    }
+	my ($n, $p) = @_;
+	if ($n <= 0 || abs($n) - abs(int($n)) != 0) {
+		die "Invalid n: $n\n"; # degree of freedom
+	}
+	if ($p <= 0 || $p > 1) {
+		die "Invalid p: $p\n"; 
+	}
+	return precision_string(_subchisqr($n, $p));
 }
 
 sub udistr { # Percentage points   N(0,1^2)
-    $p=shift;
-    if (($p>1) || ($p<=0)) {
-	die "Invalid p: $p\n";
-    }
-    &_subu;
-    if ($x) {
-	$x=sprintf"%.".abs(int(log10(abs $x)- SIGNIFICANT))."f",$x;
-    }
-    return $x;
+	my ($p) = (@_);
+	if ($p > 1 || $p <= 0) {
+		die "Invalid p: $p\n";
+	}
+	return precision_string(_subu($p));
 }
 
 sub tdistr { # Percentage points   t(x,n)
-    $n=shift;
-    $p=shift;
-    if (($n<=0) || ((abs($n)-(abs(int($n))))!=0)) {
-	die "Invalid n: $n\n";
-    }
-    if (($p<=0) || ($p>=1)) {
-	die "Invalid p: $p\n";
-    }
-    &_subt;
-    if ($x) {
-	$x=sprintf "%.".abs(int(log10(abs $x)- SIGNIFICANT))."f",$x;
-    }
-    return $x;
+	my ($n, $p) = @_;
+	if ($n <= 0 || abs($n) - abs(int($n)) != 0) {
+		die "Invalid n: $n\n";
+	}
+	if ($p <= 0 || $p >= 1) {
+		die "Invalid p: $p\n";
+	}
+	return precision_string(_subt($n, $p));
 }
 
 sub fdistr { # Percentage points  F(x,n1,n2)
-    $n=shift;
-    $m=shift;
-    $p=shift;
-    if (($n<=0) || ((abs($n)-(abs(int($n))))!=0)) {
-	die "Invalid n: $n\n"; # first degree of freedom
-    }
-    if (($m<=0) || ((abs($m)-(abs(int($m))))!=0)) {
-	die "Invalid m: $m\n"; # second degree of freedom
-    }
-    if (($p<=0) || ($p>1)) {
-	die "Invalid p: $p\n";
-    }
-    &_subf;
-    if ($x) {
-	$x=sprintf"%.".abs(int(log10(abs $x)- SIGNIFICANT))."f",$x;
-    }  
-    return $x;
+	my ($n, $m, $p) = @_;
+	if (($n<=0) || ((abs($n)-(abs(int($n))))!=0)) {
+		die "Invalid n: $n\n"; # first degree of freedom
+	}
+	if (($m<=0) || ((abs($m)-(abs(int($m))))!=0)) {
+		die "Invalid m: $m\n"; # second degree of freedom
+	}
+	if (($p<=0) || ($p>1)) {
+		die "Invalid p: $p\n";
+	}
+	return precision_string(_subf($n, $m, $p));
 }
 
 sub uprob { # Upper probability   N(0,1^2)
-    $x=shift;
-    &_subuprob;
-    if ($p) {
-	$p=sprintf"%.".abs(int(log10(abs $p)- SIGNIFICANT))."f",$p;
-    }
-    return $p;
+	my ($x) = @_;
+	return precision_string(_subuprob($x));
 }
 
 sub chisqrprob { # Upper probability   X^2(x^2,n)
-    $n=shift;    
-    $x=shift;
-    if (($n<=0) || ((abs($n)-(abs(int($n))))!=0)) {
-	die "Invalid n: $n\n"; # degree of freedom
-    }
-    &_subchisqrprob;
-    if ($p) {
-	my $precision=abs int(log10(abs $p)- SIGNIFICANT);
-	my $p=sprintf"%.".$precision."f",$p;
-	return $p;
-    }
+	my ($n,$x) = @_;
+	if (($n <= 0) || ((abs($n) - (abs(int($n)))) != 0)) {
+		die "Invalid n: $n\n"; # degree of freedom
+	}
+	return precision_string(_subchisqrprob($n, $x));
 }
 
 sub tprob { # Upper probability   t(x,n)
-    $n=shift;    
-    $x=shift;
-    if (($n<=0) || ((abs($n)-(abs(int($n))))!=0)) {
-	die "Invalid n: $n\n"; # degree of freedom
-    }
-    &_subtprob;
-    if ($p) {
-	my $precision=abs int(log10(abs $p)- SIGNIFICANT);
-	my $p=sprintf"%.".$precision."f",$p;
-	return $p;
-    }
+	my ($n, $x) = @_;
+	if (($n <= 0) || ((abs($n) - abs(int($n))) !=0)) {
+		die "Invalid n: $n\n"; # degree of freedom
+	}
+	return precision_string(_subtprob($n, $x));
 }
 
 sub fprob { # Upper probability   F(x,n1,n2)
-    $n=shift;
-    $m=shift;
-    $x=shift;
-    if (($n<=0) || ((abs($n)-(abs(int($n))))!=0)) {
-	die "Invalid n: $n\n"; # first degree of freedom
-    }
-    if (($m<=0) || ((abs($m)-(abs(int($m))))!=0)) {
-	die "Invalid m: $m\n"; # second degree of freedom
-    } 
-    &_subfprob;
-    if ($p) {
-	$p=sprintf"%.".abs(int(log10(abs $p)- SIGNIFICANT))."f",$p;
-    }  
-    return $p;
+	my ($n, $m, $x) = @_;
+	if (($n<=0) || ((abs($n)-(abs(int($n))))!=0)) {
+		die "Invalid n: $n\n"; # first degree of freedom
+	}
+	if (($m<=0) || ((abs($m)-(abs(int($m))))!=0)) {
+		die "Invalid m: $m\n"; # second degree of freedom
+	} 
+	return precision_string(_subfprob($n, $m, $x));
 }
 
 
 sub _subfprob {
-    if ($x<=0) {
-	$p=1;
-	$y=$p;
-    }
-    elsif ($m%2==0) {
-	$z=$m/($m+$n*$x);
-	$a=1;
-	for ($i=$m-2;$i>=2;$i-=2) {
-	    $a=1+($n+$i-2)/$i*$z*$a;
+	my ($n, $m, $x) = @_;
+	my $p;
+
+	if ($x<=0) {
+		$p=1;
+	} elsif ($m % 2 == 0) {
+		my $z = $m / ($m + $n * $x);
+		my $a = 1;
+		for (my $i = $m - 2; $i >= 2; $i -= 2) {
+			$a = 1 + ($n + $i - 2) / $i * $z * $a;
+		}
+		$p = 1 - ((1 - $z) ** ($n / 2) * $a);
+	} elsif ($n % 2 == 0) {
+		my $z = $n * $x / ($m + $n * $x);
+		my $a = 1;
+		for (my $i = $n - 2; $i >= 2; $i -= 2) {
+			$a = 1 + ($m + $i - 2) / $i * $z * $a;
+		}
+		$p = (1 - $z) ** ($m / 2) * $a;
+	} else {
+		my $y = atan2(sqrt($n * $x / $m), 1);
+		my $z = sin($y) ** 2;
+		my $a = ($n == 1) ? 0 : 1;
+		for (my $i = $n - 2; $i >= 3; $i -= 2) {
+			$a = 1 + ($m + $i - 2) / $i * $z * $a;
+		} 
+		my $b = PI;
+		for (my $i = 2; $i <= $m - 1; $i += 2) {
+			$b *= ($i - 1) / $i;
+		}
+		my $p1 = 2 / $b * sin($y) * cos($y) ** $m * $a;
+
+		$z = cos($y) ** 2;
+		$a = ($m == 1) ? 0 : 1;
+		for (my $i = $m-2; $i >= 3; $i -= 2) {
+			$a = 1 + ($i - 1) / $i * $z * $a;
+		}
+		$p = max(0, $p1 + 1 - 2 * $y / PI
+			- 2 / PI * sin($y) * cos $y * $a);
 	}
-	$p=(1-$z)**($n/2)*$a;
-	$p=1-$p;
-	$y=$p;
-    } 
-    elsif ($n%2==0) {
-	$z=$n*$x/($m+$n*$x);
-	$i=$m;
-	$m=$n;
-	$n=$i;
-	$a=1;
-	for ($i=$m-2;$i>=2;$i-=2) {
-	    $a=1+($n+$i-2)/$i*$z*$a;
-	}
-	$p=(1-$z)**($n/2)*$a;
-	$i=$m;
-	$m=$n;
-	$n=$i;
-	$y=$p;
-    }
-    else {
-	$y=atan2(sqrt($n*$x/$m),1);
-	$z=sin($y)**2;
-	if ($n==1) {
-	    $a=0;
-	}
-	else {
-	    $a=1;
-	}
-	for ($i=$n-2;$i>=3;$i-=2) {
-	    $a=1+($m+$i-2)/$i*$z*$a;
-	} 
-	$b=PI;
-	for ($i=2;$i<=$m-1;$i+=2) {
-	    $b=$b*($i-1)/$i;
-	}
-	$p=2/$b*sin($y)*cos($y)**$m*$a;
-	$z=cos($y)**2;
-	if ($m==1) {
-	    $a=0;
-	}
-	else {
-	    $a=1;
-	}
-	for ($i=$m-2;$i>=3;$i-=2) {
-	    $a=1+($i-1)/$i*$z*$a;
-	}
-	$a=1-2*$y/PI-2/PI*sin ($y)*cos $y*$a;
-	$p+=$a;
-	$p=0 if ($p<0);
-	$y=$p;
-    }
+	return $p;
 }
 
 
 sub _subchisqrprob {
-    if ($x<=0) {
-	$p=1;
-	$y=$p;
+	my ($n,$x) = @_;
+	my $p;
+
+	if ($x <= 0) {
+		$p = 1;
+	} elsif ($n > 100) {
+		$p = _subuprob((($x / $n) ** (1/3)
+				- (1 - 2/9/$n)) / sqrt(2/9/$n));
+	} elsif ($x > 400) {
+		$p = 0;
+	} else {   
+		my ($a, $i, $i1);
+		if (($n % 2) != 0) {
+			$p = 2 * _subuprob(sqrt($x));
+			$a = sqrt(2/PI) * exp(-$x/2) / sqrt($x);
+			$i1 = 1;
+		} else {
+			$p = $a = exp(-$x/2);
+			$i1 = 2;
+		}
+
+		for ($i = $i1; $i <= ($n-2); $i += 2) {
+			$a *= $x / $i;
+			$p += $a;
+		}
 	}
-    elsif ($n>100) {
-	$z=$x;
-	$x=(($x/$n)**(1/3)-(1-2/9/$n))/sqrt(2/9/$n);
-	&_subuprob;
-	$p=$y;
-	$x=$z;
-	$y=$p;
-    }
-    elsif ($x>400) {
-	$p=0;
-	$y=$p;
-    }
-    else {   
-	$a=exp(-$x/2);
-	$p=$a;
-	$y=2;
-	if (($n % 2)!=0) {
-	    $z=$x;
-	    $x=sqrt $x;
-	    &_subuprob;
-	    $p=2*$y;
-	    $a=sqrt(2/PI)*$a/$x;
-	    $x=$z;
-	    $y=1;
-	}
-	for ($i=$y;$i<=($n-2);$i+=2) {
-	    $a=$a*$x/$i;
-	    $p=$p+$a;
-	}
-	$y=$p;
-    }
+	return $p;
 }
 
 sub _subu {
-    $y=-log(4*$p*(1-$p));
-    $x=.5824238515E-5+$y*(-.104527497E-5+$y*(.8360937017E-7+$y*(-.3231081277E-8+$y*(.3657763036E-10+$y*.6936233982E-12))));
-    $x=sqrt($y*(1.570796288+$y*(.03706987906+$y*(-.8364353589E-3+$y*(-.2250947176E-3+$y*(.6841218299E-5+$y*$x))))));
-    $x=-$x if ($p>.5);
-    $y=$x;
+	my ($p) = @_;
+	my $y = -log(4 * $p * (1 - $p));
+	my $x = sqrt(
+		$y * (1.570796288
+		  + $y * (.03706987906
+		  	+ $y * (-.8364353589E-3
+			  + $y *(-.2250947176E-3
+			  	+ $y * (.6841218299E-5
+				  + $y * (0.5824238515E-5
+					+ $y * (-.104527497E-5
+					  + $y * (.8360937017E-7
+						+ $y * (-.3231081277E-8
+						  + $y * (.3657763036E-10
+							+ $y *.6936233982E-12)))))))))));
+	$x = -$x if ($p>.5);
+	return $x;
 }
 
 sub _subuprob {
-    $y=abs($x);
-    $p=0;
-    if ($y>100) {
-	$p=1-$p if ($x<0);
-	$y=$p;
-    }
-    elsif ($y<1.9) {
-	$p=(1+$y*(.049867347+$y*(.0211410061+$y*(.0032776263+$y*(.0000380036+$y*(.0000488906+$y*.000005383))))))**-16/2;
-	$p=1-$p if ($x<0);
-	$y=$p;
-    }
-    else {
-	for ($i=18;$i>=1;$i--) {
-	    $p=$i/($y+$p);
+	my ($x) = @_;
+	my $p = 0; # if ($absx > 100)
+	my $absx = abs($x);
+
+	if ($absx < 1.9) {
+		$p = (1 +
+			$absx * (.049867347
+			  + $absx * (.0211410061
+			  	+ $absx * (.0032776263
+				  + $absx * (.0000380036
+					+ $absx * (.0000488906
+					  + $absx * .000005383)))))) ** -16/2;
+	} elsif ($absx <= 100) {
+		for (my $i = 18; $i >= 1; $i--) {
+			$p = $i / ($absx + $p);
+		}
+		$p = exp(-.5 * $absx * $absx) 
+			/ sqrt(2 * PI) / ($absx + $p);
 	}
-	$p=exp(-.5*$y*$y)/sqrt(2*PI)/($y+$p);
-	$p=1-$p if ($x<0);
-	$y=$p;
-    }
+
+	$p = 1 - $p if ($x<0);
+	return $p;
 }
 
-sub log10 {
-my $n = shift;
-return log($n)/log(10);
-}
-    
+   
 sub _subt {
-    if (($p>=1) || ($p<=0)) {
-	die "Invalid p: $p\n";
-    }
-    &_subu;
-    $x=$y;
-    $y=$x**2;
-    $a=($y+1)/4;
-    $b=((5*$y+16)*$y+3)/96;
-    $c=(((3*$y+19)*$y+17)*$y-15)/384;
-    $d=((((79*$y+776)*$y+1482)*$y-1920)*$y-945)/92160;
-    $e=(((((27*$y+339)*$y+930)*$y-1782)*$y-765)*$y+17955)/368640;
-    $x=$x*(1+($a+($b+($c+($d+$e/$n)/$n)/$n)/$n)/$n);
-    if ($n>(log10($p)**2+3)) {
-	$y=$x;
-    }
-    else {
-	do {	
-	    $q=$p;
-	    &_subtprob;
-	    $p=$y;
-	    $b=$n+1;
-	    $a=exp(($b*log($b/($n+$x*$x))+log($n/$b/2/PI)-1+(1/$b-1/$n)/6)/2);
-	    $y=$x;
-	    $x=$x+($p-$q)/$a;
-	    $p=$q;
-	    $delta=$x-$y;
-	    $round=sprintf("%.".abs(int(log10(abs $x)-4))."f",$delta);
-	} while (($x) && ($round!=0));
-	$y=$x;
-    }
+	my ($n, $p) = @_;
+
+	if ($p >= 1 || $p <= 0) {
+		die "Invalid p: $p\n";
+	}
+
+	if ($p == 0.5) {
+		return 0;
+	} elsif ($p < 0.5) {
+		return - _subt($n, 1 - $p);
+	}
+
+	my $u = _subu($p);
+	my $u2 = $u ** 2;
+
+	my $a = ($u2 + 1) / 4;
+	my $b = ((5 * $u2 + 16) * $u2 + 3) / 96;
+	my $c = (((3 * $u2 + 19) * $u2 + 17) * $u2 - 15) / 384;
+	my $d = ((((79 * $u2 + 776) * $u2 + 1482) * $u2 - 1920) * $u2 - 945) 
+				/ 92160;
+	my $e = (((((27 * $u2 + 339) * $u2 + 930) * $u2 - 1782) * $u2 - 765) * $u2
+			+ 17955) / 368640;
+
+	my $x = $u * (1 + ($a + ($b + ($c + ($d + $e / $n) / $n) / $n) / $n) / $n);
+
+	if ($n <= log10($p) ** 2 + 3) {
+		my $round;
+		do { 
+			my $p1 = _subtprob($n, $x);
+			my $n1 = $n + 1;
+			my $delta = ($p1 - $p) 
+				/ exp(($n1 * log($n1 / ($n + $x * $x)) 
+					+ log($n/$n1/2/PI) - 1 
+					+ (1/$n1 - 1/$n) / 6) / 2);
+			$x += $delta;
+			$round = sprintf("%.".abs(int(log10(abs $x)-4))."f",$delta);
+		} while (($x) && ($round != 0));
+	}
+	return $x;
 }
 
 sub _subtprob {
-    $y=atan2($x/sqrt($n),1);
-    $z=cos $y**2;
-    if ($n%2==0) {
-	$a=sin($y)/2;
-	$b=.5;
-    }
-    else {
-	$b=.5+$y/PI;
-	if ($n==1) {
-	    $a=0;
+	my ($n, $x) = @_;
+
+	my ($a,$b);
+	my $w = atan2($x / sqrt($n), 1);
+	my $z = cos $w ** 2;
+	my $y = 1;
+
+	for (my $i = $n-2; $i >= 2; $i -= 2) {
+		$y = 1 + ($i-1) / $i * $z * $y;
+	} 
+
+	if ($n % 2 == 0) {
+		$a = sin($w)/2;
+		$b = .5;
+	} else {
+		$a = ($n == 1) ? 0 : sin($w)*cos($w)/PI;
+		$b= .5 + $w/PI;
 	}
-	else {   
-	    $a=sin($y)*cos($y)/PI;
-	}
-    }
-    $y=1;
-    for ($i=$n-2;$i>=2;$i-=2) {
-	$y=1+($i-1)/$i*$z*$y;
-    } 
-    $p=1-($b+$a*$y);
-    if ($p<0) {
-	$p=0;
-    }
-    $y=$p;
+	return max(0, 1 - $b - $a * $y);
 }
 
 sub _subf {
-    if (($p>=1) || ($p<=0)) {
-	die "Invalid p: $p\n";
-    }
-    if ($p==1) {
-	$x=0;
-	$y=$x;
-    }
-    elsif ($m==1) {
-	$m=$p;
-	$p=.5-$p/2;
-	&_subt;
-	$p=$m;
-	$m=1;
-	$x=1/$y**2;
-	$y=$x;
-    }
-    elsif ($n==1) {
-	$n=$m;
-	$p=$p/2;
-	&_subt;
-	$n=1;
-	$p=$p*2;
-	$x=$y**2;
-	$y=$x;
-    }
-    elsif ($m==2) {
-	$p=1-$p;
-	$m=$n;
-	$n=2;
-	&_subchisqr;
-	$x=$y;
-	$a=$n-2;
-	$x=$x/$n*(1+(($x-$a)/2+(((4*$x-11*$a)*$x+$a*(7*$n-10))/24+(((2*$x-10*$a)*$x+$a*(17*$n-26))*$x-$a*$a*(9*$n-6))/48/$m)/$m)/$m);
-	$p=1-$p;
-	$n=$m;
-	$m=2;
-	$x=1/$x;
-	$y=$x;
-    }
-    elsif ($n>$m) {
-	$p=1-$p;
-	$d=$n;
-	$n=$m;
-	$m=$d;
-	&_subf2;
-	$x=1/$x;
-	$d=$m;
-	$m=$n;
-	$n=$d;
-	$p=1-$p;
-	$y=$x;
-    }
-    else {
-	&_subf2;
-	$y=$x;
-    }
+	my ($n, $m, $p) = @_;
+	my $x;
+
+	if ($p >= 1 || $p <= 0) {
+		die "Invalid p: $p\n";
+	}
+
+	if ($p == 1) {
+		$x = 0;
+	} elsif ($m == 1) {
+		$x = 1 / (_subt($n, 0.5 - $p / 2) ** 2);
+	} elsif ($n == 1) {
+		$x = _subt($m, $p/2) ** 2;
+	} elsif ($m == 2) {
+		my $u = _subchisqr($m, 1 - $p);
+		my $a = $m - 2;
+		$x = 1 / ($u / $m * (1 +
+			(($u - $a) / 2 +
+				(((4 * $u - 11 * $a) * $u + $a * (7 * $m - 10)) / 24 +
+					(((2 * $u - 10 * $a) * $u + $a * (17 * $m - 26)) * $u
+						- $a * $a * (9 * $m - 6)
+					)/48/$n
+				)/$n
+			)/$n));
+	} elsif ($n > $m) {
+		$x = 1 / _subf2($m, $n, 1 - $p)
+	} else {
+		$x = _subf2($n, $m, $p)
+	}
+	return $x;
 }
 
 sub _subf2 {
-    &_subchisqr;
-    $x=$y;
-    $a=$n-2;
-    $x=$x/$n*(1+(($x-$a)/2+(((4*$x-11*$a)*$x+$a*(7*$n-10))/24+(((2*$x-10*$a)*$x+$a*(17*$n-26))*$x-$a*$a*(9*$n-6))/48/$m)/$m)/$m);
-    do {
-	$d=$x;
-	$c=$p;
-	&_subfprob;
-	$p=$c;
-	$z=$n+$m;
-	$z=exp(($z*log($z/($n*$x+$m))+($n-2)*log($x)+log($n*$m/$z)-log(4*PI)-(1/$n+1/$m-1/$z)/6)/2);
-	$x=$x+($y-$p)/$z;
-    } while (abs($d-$x)>3e-4);
+	my ($n, $m, $p) = @_;
+	my $u = _subchisqr($n, $p);
+	my $n2 = $n - 2;
+	my $x = $u / $n * 
+		(1 + 
+			(($u - $n2) / 2 + 
+				(((4 * $u - 11 * $n2) * $u + $n2 * (7 * $n - 10)) / 24 + 
+					(((2 * $u - 10 * $n2) * $u + $n2 * (17 * $n - 26)) * $u 
+						- $n2 * $n2 * (9 * $n - 6)) / 48 / $m) / $m) / $m);
+	my $delta;
+	do {
+		my $z = exp(
+			(($n+$m) * log(($n+$m) / ($n * $x + $m)) 
+				+ ($n - 2) * log($x)
+				+ log($n * $m / ($n+$m))
+				- log(4 * PI)
+				- (1/$n  + 1/$m - 1/($n+$m))/6
+			)/2);
+		$delta = (_subfprob($n, $m, $x) - $p) / $z;
+		$x += $delta;
+	} while (abs($delta)>3e-4);
+	return $x;
 }
 
 sub _subchisqr {
-    if (($p>1) || ($p<=0)) {
-	die "Invalid p: $p\n";
-    }
-    elsif ($p==1){
-	$x=0;
-	$y=$x;
-    }
-    elsif ($n==1) {
-	$q=$p;
-	$p=$q/2;
-	&_subu;
-	$x=$y*$y;
-	$p=$q;
-	$y=$x;
-    }
-    elsif ($n==2) {
-	$x=-2*log($p);
-	$y=$x;
-    }
-    else {
-	&_subu;
-	$x=$y;
-	$y=$x*$x;
-	$x=$n+sqrt(2*$n)*$x+2/3*($y-1)+$x*($y-7)/9/sqrt(2*$n)-2/405/$n*($y*(3*$y+7)-16);
-	$x=0 if ($x<0);
-	if ($n>100) {
-	    $y=$x;
+	my ($n, $p) = @_;
+	my $x;
+
+	if (($p > 1) || ($p <= 0)) {
+		die "Invalid p: $p\n";
+	} elsif ($p == 1){
+		$x = 0;
+	} elsif ($n == 1) {
+		$x = _subu($p / 2) ** 2;
+	} elsif ($n == 2) {
+		$x = -2 * log($p);
+	} else {
+		my $u = _subu($p);
+		my $u2 = $u * $u;
+
+		$x = max(0, $n + sqrt(2 * $n) * $u 
+			+ 2/3 * ($u2 - 1)
+			+ $u * ($u2 - 7) / 9 / sqrt(2 * $n)
+			- 2/405 / $n * ($u2 * (3 *$u2 + 7) - 16));
+
+		if ($n <= 100) {
+			my ($x0, $p1, $z);
+			do {
+				$x0 = $x;
+				if ($x < 0) {
+					$p1 = 1;
+				} elsif ($n>100) {
+					$p1 = _subuprob((($x / $n)**(1/3) - (1 - 2/9/$n))
+						/ sqrt(2/9/$n));
+				} elsif ($x>400) {
+					$p1 = 0;
+				} else {
+					my ($i0, $a);
+					if (($n % 2) != 0) {
+						$p1 = 2 * _subuprob(sqrt($x));
+						$a = sqrt(2/PI) * exp(-$x/2) / sqrt($x);
+						$i0 = 1;
+					} else {
+						$p1 = $a = exp(-$x/2);
+						$i0 = 2;
+					}
+
+					for (my $i = $i0; $i <= $n-2; $i += 2) {
+						$a *= $x / $i;
+						$p1 += $a;
+					}
+				}
+				$z = exp((($n-1) * log($x/$n) - log(4*PI*$x) 
+					+ $n - $x - 1/$n/6) / 2);
+				$x += ($p1 - $p) / $z;
+				$x = sprintf("%.5f", $x);
+			} while (($n < 31) && (abs($x0 - $x) > 1e-4));
+		}
 	}
-	else {
-	    do {
-		$b=$x;
-		$q=$p;
-		if ($x<0) {
-		    $p=1;
-		    $y=$p;
-		}
-		elsif ($n>100) {
-		    $z=$x;
-		    $x=(($x/$n)**(1/3)-(1-2/9/$n))/sqrt(2/9/$n);
-		    &_subuprob;
-		    $p=$y;
-		    $x=$z;
-		    $y=$p;
-		}
-		elsif ($x>400) {
-		    $p=0;
-		    $y=$p;
-		}
-		else {
-		    $a=exp(-$x/2);
-		    $p=$a;
-		    $y=2;
-		    if (($n % 2)!=0) {
-			$z=$x;
-			$x=sqrt($x);
-			&_subuprob;
-			$p=2*$y;
-			$a=sqrt(2/PI)*$a/$x;
-			$x=$z;
-			$y=1;
-		    }
-		    for ($i=$y;$i<=($n-2);$i+=2) {
-			$a=$a*$x/$i;
-			$p+=$a;
-		    }
-		    $y=$p;
-		}
-		$p=$y;
-		$z=exp((($n-1)*log($x/$n)-log(4*PI*$x)+$n-$x-1/$n/6)/2);
-		$x=$x+($p-$q)/$z;
-		$p=$q;
-		$x=sprintf("%.5f",$x);
-	    } while (($n<31) && (abs($b-$x)>1e-4));
-	    $y=$x;
-	}
-    }
+	return $x;
 }
+
+sub log10 {
+	my $n = shift;
+	return log($n) / log(10);
+}
+ 
+sub max {
+	my $max = shift;
+	my $next;
+	while (@_) {
+		$next = shift;
+		$max = $next if ($next > $max);
+	}	
+	return $max;
+}
+
+sub min {
+	my $min = shift;
+	my $next;
+	while (@_) {
+		$next = shift;
+		$min = $next if ($next < $min);
+	}	
+	return $min;
+}
+
+sub precision {
+	my ($x) = @_;
+	return abs int(log10(abs $x) - SIGNIFICANT);
+}
+
+sub precision_string {
+	my ($x) = @_;
+	if ($x) {
+		return sprintf "%." . precision($x) . "f", $x;
+	} else {
+		return "0";
+	}
+}
+
 
 # Autoload methods go after =cut, and are processed by the autosplit program.
 
@@ -525,16 +468,21 @@ Statistics::Distributions - Perl module for calculating critical values of commo
 
 This Perl module calulates percentage points (5 significant digits) of the u (standard normal) distribution, the student's t distribution, the chi-square distribution and the F distribution. It can also calculate the upper probability (5 significant digits) of the u (standard normal), the chi-square, the t and the F distribution.
 These critical values are needed to perform statistical tests, like the u test, the t test, the F test and the chi-squared test, and to calculate confidence intervals.
+If you are interested in more precise algorithms you could look at:
+ StatLib: http://lib.stat.cmu.edu/apstat/
+ Applied Statistics Algorithms by Griffiths, P. and Hill, I.D., Ellis Horwood: Chichester (1985)
 
 =head1 AUTHOR
 
 Michael Kospach, mike.perl@gmx.at
+Nice formating, simplification and bug repair by Matthias Trautner Kromann, mtk@id.cbs.dk 
 
 =head1 SEE ALSO
 
 Statistics::ChiSquare, Statistics::Table::t, Statistics::Table::F, perl(1).
 
 =cut
+
 
 
 
